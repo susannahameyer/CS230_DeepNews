@@ -8,19 +8,25 @@ def model(input_data_as_ids, input_scores, X_test, Y_test, embedding_dim, vocab_
 
 	costs = []  
 	inputs_placeholder, scores_placeholder, masks_placeholder, embedding_placeholder = create_placeholders(vocab_size, embedding_dim)
-	cell = tf.contrib.rnn.BasicRNNCell(num_hidden_units)
 
 	# RNN output node weights and biases
+	# use tf.get_variable
 	weights = { 'out': tf.Variable(tf.random_normal([num_hidden_units, embedding_dim])) }
 	biases = { 'out': tf.Variable(tf.random_normal([embedding_dim])) }
 
 	embedded_chars = tf.nn.embedding_lookup(embedding_placeholder, inputs_placeholder)
 	embedded_chars_unstack = tf.unstack(embedded_chars, axis=1)
-	
+
 	rnn_cell = tf.contrib.rnn.BasicRNNCell(num_hidden_units)
 	outputs, states = tf.contrib.rnn.static_rnn(rnn_cell, embedded_chars_unstack, dtype=tf.float32)
 
-	predictions = tf.matmul(outputs, weights['out']) + biases['out']
+	#convert all cells with <PAD> to -inf (if max) or 0 if avg
+	# mask should have 1s where <PAD> exists if multiplying by -inf
+	output = tf.reduce_max(states, axis=1)
+
+	predictions = tf.matmul(output, weights['out']) + biases['out']
+	predictions = tf.sigmoid(predictions)
+	
 	cost = get_cost(predictions, scores_placeholder)
 
 	optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate).minimize(cost)
@@ -34,20 +40,28 @@ def model(input_data_as_ids, input_scores, X_test, Y_test, embedding_dim, vocab_
 		# Run the initialization
 		sess.run(init)
 
+		batch_predictions = []
+		all_batch_labels = []
 		# Do the training loop
 		for epoch in range(num_epochs):
+
+			# add loop to get next batch
 			epoch_cost = 0.
+			# when we add more batches, loop through them here
 			batches = get_batch(input_data_as_ids, input_scores, batch_size, num_batches, wordToID)
 			batch_articles_ids, batch_labels, batch_mask = batches.next()
+			all_batch_labels.append(batch_labels)
 
-			_ , batch_cost = sess.run([optimizer, cost], feed_dict={inputs_placeholder: batch_articles_ids, scores_placeholder: batch_labels, embedding_placeholder: embedding})
+			_ , batch_cost, batch_prediction = sess.run([optimizer, cost, predictions], feed_dict={inputs_placeholder: batch_articles_ids, scores_placeholder: batch_labels, embedding_placeholder: embedding})
 			epoch_cost += batch_cost / num_batches
+			batch_predictions.append(batch_prediction)
 
 		if print_cost == True and epoch % 100 == 0:
 			print ("Cost after epoch %i: %f" % (epoch, epoch_cost))
 		if print_cost == True and epoch % 5 == 0:
 			costs.append(epoch_cost)
 
+	# compare batch_predictions with all_batch_labels for accuracy
 	# TO DO: add accuracy calculations 
 
 

@@ -39,12 +39,13 @@ def get_batch(input_data_as_ids, input_scores, num_articles_per_batch, num_batch
 			padded_batch_input_data_as_ids.append(article_id_list)
 			masks.append(mask)
 		#take care of padding and mask here and also get labels
-		yield np.array(padded_batch_input_data_as_ids), np.array(batch_input_scores), np.array(masks), 
+		yield np.asarray(padded_batch_input_data_as_ids), np.expand_dims(np.asarray(batch_input_scores), axis=1), np.asarray(masks)
+		#for scores, np.expand_dims(np.asarray(batch_input_scores), axis=1)
 
 # create model placeholders
 def create_placeholders(vocab_size, embedding_dim):
 	inputs_placeholder = tf.placeholder(tf.int32, shape=(None, None), name= "inputs_placeholder")
-	scores_placeholder = tf.placeholder(tf.float32, shape=(None, None), name= "scores_placeholder")
+	scores_placeholder = tf.placeholder(tf.float32, shape=(None, 1), name= "scores_placeholder")
 	masks_placeholder = tf.placeholder(tf.int32, shape=(None, None), name= "masks_placeholder")
 	embedding_placeholder = tf.placeholder(tf.int32, shape=(vocab_size, embedding_dim), name= "embedding_placeholder")
 	return inputs_placeholder, scores_placeholder, masks_placeholder, embedding_placeholder
@@ -52,5 +53,4 @@ def create_placeholders(vocab_size, embedding_dim):
 # mean squared error cost function
 def get_cost(predictions, true_labels):
     temp = tf.square(tf.subtract(predictions, true_labels))
-    # apply mask?
     return tf.reduce_mean(temp)
