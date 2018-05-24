@@ -66,6 +66,6 @@ def create_embeddings(vocab_size, glove_vocab, wordToID, embedding_dict, embeddi
 			rand_num = np.random.uniform(low=-0.2, high=0.2,size=embedding_dim)
 			embeddings_tmp.append(rand_num)
 	# final embedding array corresponds to dictionary of words in the document
-	embeddings = np.asarray(embeddings_tmp)
-	return embeddings
+	embeddings = np.asarray(embeddings_tmp, dtype=np.float32)
 
+	return embeddings
