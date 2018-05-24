@@ -68,16 +68,18 @@ def model(max_article_length, input_data_as_ids, input_scores, X_test, Y_test, e
 			epoch_cost = 0.
 			# when we add more batches, loop through them here
 			batches = get_batch(max_article_length, input_data_as_ids, input_scores, batch_size, num_batches, wordToID)
-			max_article_length, batch_articles_ids, batch_labels, batch_mask = batches.next()
-			#batch_articles_ids needs to be of size [num_articles_per_batch, max_article_length]
-			all_batch_labels.append(batch_labels)
 
-			_ , batch_cost, batch_prediction = sess.run([optimizer, cost, predictions], feed_dict={inputs_placeholder: batch_articles_ids, scores_placeholder: batch_labels, embedding_placeholder: embeddings})
+			for i in range(num_batches):
+				max_article_length, batch_articles_ids, batch_labels, batch_mask = batches.next()
+				#batch_articles_ids needs to be of size [num_articles_per_batch, max_article_length]
+				all_batch_labels.append(batch_labels)
 
-			#double check
-			epoch_cost += batch_cost / num_batches
+				_ , batch_cost, batch_prediction = sess.run([optimizer, cost, predictions], feed_dict={inputs_placeholder: batch_articles_ids, masks_placeholder: batch_mask, scores_placeholder: batch_labels, embedding_placeholder: embeddings})
 
-			batch_predictions.append(batch_prediction)
+				#double check
+				epoch_cost += batch_cost / num_batches
+
+				batch_predictions.append(batch_prediction)
 
 			#import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
 
@@ -85,6 +87,15 @@ def model(max_article_length, input_data_as_ids, input_scores, X_test, Y_test, e
 				print ("Cost after epoch %i: %f" % (epoch, epoch_cost))
 			if epoch % 5 == 0:
 				costs.append(epoch_cost)
+
+	accuracy_threshold = 0.1
+	correctly_scored_count = 0
+	for i in range(len(batch_predictions)):
+		if abs(batch_predictions[i] - all_batch_labels[i]) <= accuracy_threshold:
+			correctly_scored_count += 1
+
+	train_accuracy = correctly_scored_count / len(batch_predictions)
+	print "Train accuracy = " + str(train_accuracy)
 
 	# compare batch_predictions with all_batch_labels for accuracy
 	# TO DO: add accuracy calculations
