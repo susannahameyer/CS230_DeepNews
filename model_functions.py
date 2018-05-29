@@ -32,15 +32,21 @@ def get_batch(max_article_length, input_data_as_ids, input_scores, batch_size, n
 		#max_article_length = len(max(batch_input_data_as_ids, key=len))
 		padded_batch_input_data_as_ids = []
 		for article_id_list in batch_input_data_as_ids:
-			mask = [1] * len(article_id_list)
+			mask = [1.0] * len(article_id_list)
 			while len(article_id_list) < max_article_length:
 				article_id_list.append(wordToID['<PAD>'])
-				mask.append(0)
+				mask.append(-100.0)
 			padded_batch_input_data_as_ids.append(article_id_list)
 			masks.append(mask)
 			#import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
 		#print padded_batch_input_data_as_ids.shape
 		#take care of padding and mask here and also get labels
+
+
+			#include this?!?!
+		#masks = tf.tile(masks, [1, 1, num_hidden_units])
+
+
 		yield max_article_length, np.asarray(padded_batch_input_data_as_ids), np.expand_dims(np.asarray(batch_input_scores), axis=1), np.asarray(masks)
 		#for scores, np.expand_dims(np.asarray(batch_input_scores), axis=1)
 
@@ -48,8 +54,8 @@ def get_batch(max_article_length, input_data_as_ids, input_scores, batch_size, n
 def create_placeholders(max_article_length, batch_size, vocab_size, embedding_dim):
 	#import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
 	#article_size = max(lengths(X_test))
-	inputs_placeholder = tf.placeholder(tf.int32, shape=[None, max_article_length], name= "inputs_placeholder") #must edit this!!!
-	masks_placeholder = tf.placeholder(tf.int32, shape=[None, max_article_length], name= "masks_placeholder") #need this to match!
+	inputs_placeholder = tf.placeholder(tf.int32, shape=[batch_size, max_article_length], name= "inputs_placeholder") #must edit this!!!
+	masks_placeholder = tf.placeholder(tf.float32, shape=[batch_size, max_article_length], name= "masks_placeholder") #need this to match!
 	scores_placeholder = tf.placeholder(tf.float32, shape=[None, 1], name= "scores_placeholder")
 	embedding_placeholder = tf.placeholder(tf.float32, shape=[vocab_size, embedding_dim], name= "embedding_placeholder")
 	return inputs_placeholder, masks_placeholder, scores_placeholder, embedding_placeholder
