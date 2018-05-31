@@ -2,7 +2,6 @@ from model_functions import get_input_data_as_ids, get_batch, create_placeholder
 from preprocess import load_glove, get_input_data, build_dictionaries, create_embeddings, get_input_labels
 import tensorflow as tf
 import io
-from vocab import get_glove
 import numpy as np
 
 
@@ -13,41 +12,17 @@ def model(max_article_length, input_data_as_ids, input_scores, X_test, Y_test, e
 	costs = []
 	inputs_placeholder, masks_placeholder, scores_placeholder, embedding_placeholder = create_placeholders(max_article_length, batch_size, vocab_size, embedding_dim)
 	#import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
-
-	# RNN output node weights and biases
-	# use tf.get_variable
-	weights = { 'out': tf.Variable(tf.random_normal([num_hidden_units, embedding_dim])) }
-	biases = { 'out': tf.Variable(tf.random_normal([embedding_dim])) }
-	#import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
 	embedded_chars = tf.nn.embedding_lookup(embedding_placeholder, inputs_placeholder)
-	#initial_state = tf.zeros([batchSize, max_article_length, embedding_dim]), dtype=tf.float32)
-
-	#returns 10 [batch_size] tensors that are [max_article_length, embedding_dim]
-	#embedded_chars_unstack = tf.unstack(embedded_chars, batch_size, axis=0)
-
 	#Create basic RNN cell
 	rnn_cell = tf.contrib.rnn.BasicRNNCell(num_hidden_units)
-
-	# Defining initial state
-	#initial_state = rnn_cell.zero_state(batch_size, dtype=tf.float32)
-
 	#state is a tensor of shape [batch_size, cell_state_size]
 	outputs, _ = tf.nn.dynamic_rnn(rnn_cell, embedded_chars, sequence_length = [max_article_length]*batch_size, dtype=tf.float32)
 	#outputs shape=(10, 1433, 20) -- (batch_size, max_article_length, num_hidden_units)
 	#states shape = (10, 20)
-
-	#APPLY MASK so that all places where padding is cannot affect outputs
-	#wherever there is padding, make those values "-inf" (yes, bc we're doing max)
-	#change to -inf
-	#if we're doing average over RNN, set to 0
-	#convert all cells with <PAD> to -inf (if max) or 0 if avg
-	# mask should have 1s where <PAD> exists if multiplying by -inf
-
 	#import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
 
-
 	masks_ = tf.reshape(masks_placeholder, shape=[batch_size, max_article_length, 1])
-	masks_ = tf.tile(masks_, [1, 1, num_hidden_units])
+	# masks_ = tf.tile(masks_, [1, 1, num_hidden_units])
 
 	padded_outputs = tf.multiply(outputs, masks_)
 
@@ -72,21 +47,28 @@ def model(max_article_length, input_data_as_ids, input_scores, X_test, Y_test, e
 		# Run the initialization
 		sess.run(init)
 
+		# move evaluation to inside epoch
 		all_batch_predictions = np.zeros(shape=(batch_size, num_batches, 1), dtype=np.float32)
 		all_batch_labels = np.zeros(shape=(batch_size, num_batches, 1), dtype=np.float32)
 		#shape = (batch_size, num_batches) right??
 
+		#70/20/10
 		# Do the training loop
 		for epoch in range(num_epochs):
 
 			# add loop to get next batch
 			epoch_cost = 0.0
-			# when we add more batches, loop through them here
 			batches = get_batch(max_article_length, input_data_as_ids, input_scores, batch_size, num_batches, wordToID)
 
+			#create generator for dev data
+			#inside function where we do evaluation, iterate over entire dev set
+
 			for batch in range(num_batches):
+				#every x batches of training data, loop over dev data and calculate performance
+				#for dev data, run session without optimizer
+				# function for get batch, loop over batches, and evaluation for dev set
+				# when ready for test set, just change folder from dev to test
 				max_article_length, padded_batch_articles_ids, batch_labels, batch_masks = batches.next()
-				#batch_articles_ids needs to be of size [num_articles_per_batch, max_article_length]
 
 				#from IPython import embed3
 				#embed()
@@ -95,6 +77,11 @@ def model(max_article_length, input_data_as_ids, input_scores, X_test, Y_test, e
 				#import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
 
 				_ , batch_cost, batch_prediction = sess.run([optimizer, cost, predictions], feed_dict={inputs_placeholder: padded_batch_articles_ids, masks_placeholder: batch_masks, scores_placeholder: batch_labels, embedding_placeholder: embeddings})
+				
+				#in if statement, pass sess into new function for dev/test and evaluate performance over entire set
+
+				# compare batch_labels and batch_predictions here to get performance for train set
+
 				all_batch_predictions[:, batch] = batch_prediction
 				#import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
 
@@ -109,38 +96,21 @@ def model(max_article_length, input_data_as_ids, input_scores, X_test, Y_test, e
 			if epoch % 5 == 0:
 				costs.append(epoch_cost)
 
-	#mean squared error
-	#L2 loss
-
-
 	similarity_threshold = 0.1
 	correctly_scored_count = 0
-	#import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
+	# import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
 
 	score_differences = abs(all_batch_labels - all_batch_predictions)
-	correctly_scored_count = np.sum(score_differences < accuracy_threshold)
-	#print(score_differences)
-	#print(correctly_scored_count)
-	#print(len(all_batch_predictions))
+	correctly_scored_count = np.sum(score_differences < similarity_threshold)
 
 	performance = tf.divide(correctly_scored_count,len(all_batch_predictions))
 
 	print "Performance = " + str(performance)
-	#print ("Train Accuracy:", accuracy.eval({inputs_placeholder: X_train, scores_placeholder: Y_train}))
-	#print ("Test Accuracy:", accuracy.eval({X: X_test, Y: Y_test}))
-	#cast back to tensor?
 
-	# compare batch_predictions with all_batch_labels for accuracy
-	# TO DO: add accuracy calculations
 
 
 #TO DO: write results of load_glove, build_dictionaries, create_embeddings to file once and read in
 glove_vocab, glove_to_embedding, embedding_dim = load_glove()
-#emb_matrix, word2id, id2word, char_emb_matrix, char2id, id2char = get_glove(embedding_dim)
-
-#EDIT THISSSSSS
-#x_train, y_train = form_data_set('train')
-#x_test, y_test = form_data_set('test')
 total_num_articles = 10
 #vocab_size = len(word2id)
 input_data = get_input_data(total_num_articles)

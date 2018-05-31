@@ -20,6 +20,8 @@ def get_input_data_as_ids(word2id, input_data):
 	return np.array(input_data_as_ids)
 
 # returns the next batch from the entire set of articles
+
+# pass in folder name for train/dev/test and inside this function, convert to ids
 def get_batch(max_article_length, input_data_as_ids, input_scores, batch_size, num_batches, wordToID):
 	for i in range(num_batches):
 		masks=[]
@@ -38,15 +40,6 @@ def get_batch(max_article_length, input_data_as_ids, input_scores, batch_size, n
 				mask.append(-100.0)
 			padded_batch_input_data_as_ids.append(article_id_list)
 			masks.append(mask)
-			#import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
-		#print padded_batch_input_data_as_ids.shape
-		#take care of padding and mask here and also get labels
-
-
-			#include this?!?!
-		#masks = tf.tile(masks, [1, 1, num_hidden_units])
-
-
 		yield max_article_length, np.asarray(padded_batch_input_data_as_ids), np.expand_dims(np.asarray(batch_input_scores), axis=1), np.asarray(masks)
 		#for scores, np.expand_dims(np.asarray(batch_input_scores), axis=1)
 
