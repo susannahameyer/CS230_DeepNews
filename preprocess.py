@@ -2,6 +2,7 @@ import numpy as np
 import collections
 import random
 import io
+import os
 
 # Loads GLOVE vectors
 def load_glove(filepath='glove.6B.100d.txt'):
@@ -30,6 +31,32 @@ def get_input_data(num_articles):
 		except:
 			continue
 	return article_list
+
+
+def get_input_data_per_batch(batch_size, start_index, folder_name):
+	article_file_list = sorted(os.listdir(folder_name))
+	article_file_list = article_file_list[::2]
+	article_list = []
+	# print article_file_list
+	for i in range(start_index, start_index + batch_size):
+		filename = article_file_list[i]
+		article = np.loadtxt(filename, dtype=np.str)
+		article_list.append(article)
+	return article_list
+
+def get_input_labels_per_batch(batch_size, start_index, folder_name):
+	label_file_list = sorted(os.listdir(folder_name))
+	label_file_list = label_file_list[1::2]
+	# print label_file_list
+	label_list = []
+	for i in range(start_index, start_index + batch_size):
+		filename = label_file_list[i]
+		with open(filename) as label_file:
+			label = label_file.readline()
+			label_list.append(float(label))
+	# print label_list
+	return label_list
+
 
 # Retrieves input scores for the model, corresponding to the .txt files retrieved in get_input_data
 def get_input_labels(num_articles):
