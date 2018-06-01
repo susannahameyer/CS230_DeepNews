@@ -4,11 +4,10 @@ import tensorflow as tf
 import io
 import numpy as np
 
+#36150/150
+def model(max_article_length, embedding_dim, vocab_size, embeddings, wordToID,
+		  num_epochs = 100, batch_size = 150, num_batches = 241, num_hidden_units = 100, learning_rate = 0.001):
 
-def model(max_article_length, input_data_as_ids, input_scores, X_test, Y_test, embedding_dim, vocab_size, embeddings, wordToID,
-		  num_epochs = 100, batch_size = 5, num_batches = 2, num_hidden_units = 20, learning_rate = 0.0001):
-
-	input_shape = input_data_as_ids.shape
 	costs = []
 	inputs_placeholder, masks_placeholder, scores_placeholder, embedding_placeholder = create_placeholders(max_article_length, batch_size, vocab_size, embedding_dim)
 	#import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
@@ -96,10 +95,10 @@ def model(max_article_length, input_data_as_ids, input_scores, X_test, Y_test, e
 
 #TO DO: write results of load_glove, build_dictionaries, create_embeddings to file once and read in
 glove_vocab, glove_to_embedding, embedding_dim = load_glove()
-total_num_articles = 10
+total_num_articles = 36150
 #vocab_size = len(word2id)
-input_data = get_input_data(total_num_articles)
-input_scores = get_input_labels(total_num_articles)
+input_data = get_input_data(total_num_articles, "train")
+# input_scores = get_input_labels(total_num_articles)
 
 all_articles_words = [] #list of every unique word in all articles (set)
 max_article_length = 0 #length of the maximum-length article in our input data
@@ -113,11 +112,11 @@ all_articles_words.append('<PAD>')
 
 word2id, id2word, vocab_size = build_dictionaries(all_articles_words)
 
-x_train_ids = get_input_data_as_ids(word2id, input_data)
+# x_train_ids = get_input_data_as_ids(word2id, input_data)
 embeddings = create_embeddings(vocab_size, glove_vocab, word2id, glove_to_embedding, embedding_dim)
 
 #build test sets
-X_test = x_train_ids
-Y_test = input_scores
+# X_test = x_train_ids
+# Y_test = input_scores
 
-model(max_article_length, x_train_ids, input_scores, X_test, Y_test, embedding_dim, vocab_size, embeddings, word2id)
+model(max_article_length, embedding_dim, vocab_size, embeddings, word2id)

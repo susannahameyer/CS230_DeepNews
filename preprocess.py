@@ -21,15 +21,15 @@ def load_glove(filepath='glove.6B.100d.txt'):
 
 # Retrieves input data for the model. Returns an array of arrays: every element
 # is a single article's word tokenizations.
-def get_input_data(num_articles):
+def get_input_data(num_articles, folder_name):
+	article_file_list = sorted(os.listdir(folder_name))
+	article_file_list = article_file_list[::2]
+	print article_file_list
 	article_list = []
 	for i in range(num_articles):
-		filename = str(i) + ".txt"
-		try:
-			article = np.loadtxt(filename, dtype=np.str)
-			article_list.append(article)
-		except:
-			continue
+		filename = article_file_list[i]
+		article = np.loadtxt(filename, dtype=np.str)
+		article_list.append(article)
 	return article_list
 
 
