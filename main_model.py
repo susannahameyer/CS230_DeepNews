@@ -1,13 +1,13 @@
-from model_functions import get_input_data_as_ids, get_batch, create_placeholders, get_cost, get_batch_from_folder
+from model_functions import get_input_data_as_ids, get_batch, create_placeholders, get_cost, get_batch_from_folder, run_and_eval_dev
 from preprocess import load_glove, get_input_data, build_dictionaries, create_embeddings, get_input_labels
 import tensorflow as tf
 import io
 import numpy as np
 
-#36150/150
 def model(max_article_length, embedding_dim, vocab_size, embeddings, wordToID,
 		  num_epochs = 100, batch_size = 150, num_batches = 241, num_hidden_units = 100, learning_rate = 0.001):
-
+# def model(max_article_length, embedding_dim, vocab_size, embeddings, wordToID,
+# 		  num_epochs = 100, batch_size = 10, num_batches = 1, num_hidden_units = 100, learning_rate = 0.001):
 	costs = []
 	inputs_placeholder, masks_placeholder, scores_placeholder, embedding_placeholder = create_placeholders(max_article_length, batch_size, vocab_size, embedding_dim)
 	#import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
@@ -90,12 +90,12 @@ def model(max_article_length, embedding_dim, vocab_size, embeddings, wordToID,
 				print ("Cost after epoch %i: %f" % (epoch, epoch_cost))
 			if epoch % 5 == 0:
 				costs.append(epoch_cost)
-
-
+			# run_and_eval_dev(sess, max_article_length, "dev", dev_batch_size, num_dev_batches, wordToID, embeddings, cost, predictions)
 
 #TO DO: write results of load_glove, build_dictionaries, create_embeddings to file once and read in
 glove_vocab, glove_to_embedding, embedding_dim = load_glove()
 total_num_articles = 36150
+# total_num_articles = 10
 #vocab_size = len(word2id)
 input_data = get_input_data(total_num_articles, "train")
 # input_scores = get_input_labels(total_num_articles)

@@ -65,7 +65,7 @@ def get_batch_from_folder(max_article_length, folder_name, batch_size, num_batch
 		yield np.asarray(padded_batch_articles_ids), np.expand_dims(np.asarray(batch_input_scores), axis=1), np.asarray(masks)
 
 
-def run_and_eval_dev(sess, max_article_length, folder_name, dev_batch_size, num_dev_batches, wordToID, embeddings):
+def run_and_eval_dev(sess, max_article_length, folder_name, dev_batch_size, num_dev_batches, wordToID, embeddings, cost, predictions):
 	batches = get_batch_from_folder(max_article_length, folder_name, batch_size, num_batches, wordToID)
 	all_batch_predictions = np.zeros(shape=(dev_batch_size, num_dev_batches, 1), dtype=np.float32)
 	all_batch_labels = np.zeros(shape=(dev_batch_size, num_dev_batches, 1), dtype=np.float32)
@@ -73,7 +73,7 @@ def run_and_eval_dev(sess, max_article_length, folder_name, dev_batch_size, num_
 	for batch in range(num_dev_batches):
 		padded_batch_articles_ids, batch_labels, batch_masks = batches.next()
 		all_batch_labels[:, batch] = batch_labels
-		_ , batch_cost, batch_predictions = sess.run([optimizer, cost, predictions], feed_dict={inputs_placeholder: padded_batch_articles_ids, masks_placeholder: batch_masks, scores_placeholder: batch_labels, embedding_placeholder: embeddings})
+		_ , batch_cost, batch_predictions = sess.run([cost, predictions], feed_dict={inputs_placeholder: padded_batch_articles_ids, masks_placeholder: batch_masks, scores_placeholder: batch_labels, embedding_placeholder: embeddings})
 		all_batch_predictions[:, batch] = batch_predictions
 
 	#Evaluate entire dev set

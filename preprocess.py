@@ -22,35 +22,35 @@ def load_glove(filepath='glove.6B.100d.txt'):
 # Retrieves input data for the model. Returns an array of arrays: every element
 # is a single article's word tokenizations.
 def get_input_data(num_articles, folder_name):
-	article_file_list = sorted(os.listdir(folder_name))
-	article_file_list = article_file_list[::2]
-	print article_file_list
+	article_file_list = os.listdir(folder_name)
+	article_file_list = sorted([ x for x in article_file_list if "label" not in x ], key=lambda x: int(x.split('.')[0]))
+	# print article_file_list
 	article_list = []
 	for i in range(num_articles):
-		filename = article_file_list[i]
+		filename = folder_name + "/" + article_file_list[i]
 		article = np.loadtxt(filename, dtype=np.str)
 		article_list.append(article)
 	return article_list
 
 
 def get_input_data_per_batch(batch_size, start_index, folder_name):
-	article_file_list = sorted(os.listdir(folder_name))
-	article_file_list = article_file_list[::2]
+	article_file_list = os.listdir(folder_name)
+	article_file_list = sorted([ x for x in article_file_list if "label" not in x ], key=lambda x: int(x.split('.')[0]))
 	article_list = []
 	# print article_file_list
 	for i in range(start_index, start_index + batch_size):
-		filename = article_file_list[i]
+		filename = folder_name + "/" + article_file_list[i]
 		article = np.loadtxt(filename, dtype=np.str)
 		article_list.append(article)
 	return article_list
 
 def get_input_labels_per_batch(batch_size, start_index, folder_name):
-	label_file_list = sorted(os.listdir(folder_name))
-	label_file_list = label_file_list[1::2]
+	label_file_list = os.listdir(folder_name)
+	label_file_list = sorted([ x for x in label_file_list if "label" in x ], key=lambda x: int(x.split('_')[0]))
 	# print label_file_list
 	label_list = []
 	for i in range(start_index, start_index + batch_size):
-		filename = label_file_list[i]
+		filename = folder_name + "/" + label_file_list[i]
 		with open(filename) as label_file:
 			label = label_file.readline()
 			label_list.append(float(label))
