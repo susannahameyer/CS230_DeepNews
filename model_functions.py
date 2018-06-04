@@ -66,7 +66,7 @@ def get_batch_from_folder(max_article_length, folder_name, batch_size, num_batch
 
 
 def run_and_eval_dev(sess, max_article_length, folder_name, dev_batch_size, num_dev_batches, wordToID, embeddings, cost, predictions):
-	batches = get_batch_from_folder(max_article_length, folder_name, batch_size, num_batches, wordToID)
+	batches = get_batch_from_folder(max_article_length, folder_name, dev_batch_size, num_batches, wordToID)
 	all_batch_predictions = np.zeros(shape=(dev_batch_size, num_dev_batches, 1), dtype=np.float32)
 	all_batch_labels = np.zeros(shape=(dev_batch_size, num_dev_batches, 1), dtype=np.float32)
 

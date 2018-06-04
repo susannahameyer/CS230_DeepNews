@@ -5,7 +5,7 @@ import io
 import numpy as np
 
 def model(max_article_length, embedding_dim, vocab_size, embeddings, wordToID,
-		  num_epochs = 100, batch_size = 150, num_batches = 241, num_hidden_units = 100, learning_rate = 0.001):
+		  num_epochs = 10000, batch_size = 100, num_batches = 353, num_hidden_units = 100, learning_rate = 0.001):
 # def model(max_article_length, embedding_dim, vocab_size, embeddings, wordToID,
 # 		  num_epochs = 100, batch_size = 10, num_batches = 1, num_hidden_units = 100, learning_rate = 0.001):
 	costs = []
@@ -80,7 +80,7 @@ def model(max_article_length, embedding_dim, vocab_size, embeddings, wordToID,
 					print "Count of correct scores for batch " + str(batch) + ": " + str(correctly_scored_count)
 					print "Performance for batch " + str(batch) + ": " + str(performance)
 
-				
+
 				#import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
 
 				epoch_cost += batch_cost / num_batches
@@ -90,30 +90,34 @@ def model(max_article_length, embedding_dim, vocab_size, embeddings, wordToID,
 				print ("Cost after epoch %i: %f" % (epoch, epoch_cost))
 			if epoch % 5 == 0:
 				costs.append(epoch_cost)
-			# run_and_eval_dev(sess, max_article_length, "dev", dev_batch_size, num_dev_batches, wordToID, embeddings, cost, predictions)
+			run_and_eval_dev(sess, max_article_length, "dev", 100, 100, wordToID, embeddings, cost, predictions)
 
 #TO DO: write results of load_glove, build_dictionaries, create_embeddings to file once and read in
 glove_vocab, glove_to_embedding, embedding_dim = load_glove()
-total_num_articles = 36150
+total_num_articles_train = 35300
+total_num_articles_dev = 10000
 # total_num_articles = 10
 #vocab_size = len(word2id)
-input_data = get_input_data(total_num_articles, "train")
+input_data = get_input_data([("train", total_num_articles_train), ("dev", total_num_articles_dev)])
+print "loaded input_data"
 # input_scores = get_input_labels(total_num_articles)
 
 all_articles_words = [] #list of every unique word in all articles (set)
 max_article_length = 0 #length of the maximum-length article in our input data
 for article in input_data:
-	if len(article) > max_article_length:
-		max_article_length = len(article)
+	if article.size > max_article_length:
+		max_article_length = article.size
 	for word in article:
 		if word not in all_articles_words:
 			all_articles_words.append(word)
 all_articles_words.append('<PAD>')
 
 word2id, id2word, vocab_size = build_dictionaries(all_articles_words)
+print "built dictinoaries"
 
 # x_train_ids = get_input_data_as_ids(word2id, input_data)
 embeddings = create_embeddings(vocab_size, glove_vocab, word2id, glove_to_embedding, embedding_dim)
+print "created embeddings"
 
 #build test sets
 # X_test = x_train_ids

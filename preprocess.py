@@ -21,15 +21,18 @@ def load_glove(filepath='glove.6B.100d.txt'):
 
 # Retrieves input data for the model. Returns an array of arrays: every element
 # is a single article's word tokenizations.
-def get_input_data(num_articles, folder_name):
-	article_file_list = os.listdir(folder_name)
-	article_file_list = sorted([ x for x in article_file_list if "label" not in x ], key=lambda x: int(x.split('.')[0]))
-	# print article_file_list
+def get_input_data(folder_names_and_size):
 	article_list = []
-	for i in range(num_articles):
-		filename = folder_name + "/" + article_file_list[i]
-		article = np.loadtxt(filename, dtype=np.str)
-		article_list.append(article)
+	for name, article_num in folder_names_and_size:
+		article_file_list = os.listdir(name)
+		article_file_list = sorted([ x for x in article_file_list if "label" not in x ], key=lambda x: int(x.split('.')[0]))
+		# print article_file_list
+		for i in range(article_num):
+			filename = name + "/" + article_file_list[i]
+			article = np.loadtxt(filename, dtype=np.str)
+			import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
+
+			article_list.append(article)
 	return article_list
 
 
