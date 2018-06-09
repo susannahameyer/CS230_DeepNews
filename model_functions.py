@@ -72,9 +72,9 @@ def run_and_eval_dev(sess, max_article_length, folder_name, dev_batch_size, num_
 	correctly_scored_count = np.sum(score_differences < similarity_threshold)
 	performance = tf.divide(correctly_scored_count, num_dev_batches*dev_batch_size)
 
-	print "Dev correctly scored count: " + str(correctly_scored_count)
+	print "Test correctly scored count: " + str(correctly_scored_count)
 	sys.stdout.flush()
-	print "Dev performance: " + str(performance)
+	print "Test performance: " + str(performance)
 	sys.stdout.flush()
 	return epoch_cost
 

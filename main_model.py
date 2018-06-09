@@ -23,7 +23,7 @@ def model(max_article_length, embedding_dim, vocab_size, embeddings, wordToID,
 
 	#Layer 1: LSTM
 	rnn_cell = tf.nn.rnn_cell.BasicLSTMCell(num_hidden_units)
-	#Produces output cells of shape = (10, 1433, 20) ~ (batch_size, max_article_length, num_hidden_units)
+	#Produces output cells of shape = (batch_size, max_article_length, num_hidden_units)
 	outputs, _ = tf.nn.dynamic_rnn(rnn_cell, embedded_chars, sequence_length = [max_article_length]*batch_size, dtype=tf.float32)
 
 
@@ -82,13 +82,13 @@ def model(max_article_length, embedding_dim, vocab_size, embeddings, wordToID,
 				epoch_cost += batch_cost / num_batches
 
 			#Evaluate the dev set
-			dev_epoch_cost = run_and_eval_dev(sess, max_article_length, "dev", 10, 1, wordToID, embeddings, cost, \
+			dev_epoch_cost = run_and_eval_dev(sess, max_article_length, "test", 100, 50, wordToID, embeddings, cost, \
 					predictions, inputs_placeholder, masks_placeholder, scores_placeholder, embedding_placeholder)
 
-		    #Outputs the costs of the training and dev sets
+		    #Outputs the costs of the training and dev/test sets
 			print ("Training cost after epoch %i: %f" % (epoch, epoch_cost))
 			sys.stdout.flush()
-			print ("Dev cost after epoch %i: %f" % (epoch, dev_epoch_cost))
+			print ("Test cost after epoch %i: %f" % (epoch, dev_epoch_cost))
 			sys.stdout.flush()
 
 
