@@ -1,8 +1,0 @@
-def form_data_set(type, path):
-    data_set = []
-    
-     if type == "train":
-
-     elif type == "dev":
-
-     elif type == "test":
